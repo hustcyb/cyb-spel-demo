@@ -7,12 +7,14 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelCompilerMode;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.DataBindingPropertyAccessor;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -113,15 +115,18 @@ public class SpelEvaluationTests {
 		String name = expression.getValue(student, String.class);
 		assertEquals("Tom", name);
 	}
-	
+
 	@Test
 	public void testMap() {
 		Map<String, Object> data = new HashMap<String, Object>();
 		data.put("className", "Computer");
-		
+
 		ExpressionParser parser = new SpelExpressionParser();
-		Expression expression = parser.parseExpression("{'Math','English','Computer'}.contains(['className'])");
-		boolean contains = expression.getValue(data, boolean.class);
+		EvaluationContext context = SimpleEvaluationContext
+				.forPropertyAccessors(new MapAccessor(), DataBindingPropertyAccessor.forReadOnlyAccess()).build();
+		Expression expression = parser
+				.parseExpression("className == 'Math' or className == 'English' or className == 'Computer'");
+		boolean contains = expression.getValue(context, data, boolean.class);
 		assertEquals(true, contains);
 	}
 
